@@ -1,21 +1,33 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net"
 
 	api "github.com/gannonbarnett/cloud/api"
+	"github.com/jackc/pgx/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 )
 
 type CloudServer struct {
 	api.UnimplementedCloudServer
+
+	db *pgx.Conn
 }
 
-func NewCloudServer() *CloudServer {
-	return &CloudServer{}
+func NewCloudServer(dbAddr string) *CloudServer {
+	conn, err := pgx.Connect(context.Background(), dbAddr)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Connected to db: %v\n", dbAddr)
+
+	return &CloudServer{
+		db: conn,
+	}
 }
 
 func (s *CloudServer) Handle(stream api.Cloud_HandleServer) error {
@@ -49,13 +61,15 @@ func (s *CloudServer) Handle(stream api.Cloud_HandleServer) error {
 }
 
 func main() {
+	dbAddr := "postgres://admin@localhost:5432/pgdata"
+
 	addr := "0.0.0.0:9000"
 	conn, err := net.Listen("tcp", addr)
 	if err != nil {
 		panic(err)
 	}
 
-	handler := NewCloudServer()
+	handler := NewCloudServer(dbAddr)
 	grpcServer := grpc.NewServer()
 	api.RegisterCloudServer(grpcServer, handler)
 
