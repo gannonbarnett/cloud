@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package cloud;
+
+// Cloud service manages streams from devices.
+service Cloud {
+    rpc Handle(stream FromDevice) returns (stream ToDevice) {}
+}
+
+message FromDevice {
+  string name = 1;
+}
+
+message ToDevice {
+  string name = 1;
+}
