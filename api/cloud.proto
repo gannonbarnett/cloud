@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "github.com/gannonbarnett/cloud";
+
 package cloud;
 
 // Cloud service manages streams from devices.
